@@ -30,10 +30,10 @@ RUN php artisan package:discover --ansi || true
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
 
-# IMPORTANT: koristi server.php kao router, da rute poput /livewire/livewire.js idu kroz Laravel
+# IMPORTANT: koristi public/index.php kao router za php -S (radi i bez server.php)
 CMD sh -lc "\
   php artisan optimize:clear || true && \
   php artisan migrate --force || true && \
   php artisan storage:link || true && \
-  php -S 0.0.0.0:${PORT:-8080} -t public server.php \
+  php -S 0.0.0.0:${PORT:-8080} -t public public/index.php \
 "
