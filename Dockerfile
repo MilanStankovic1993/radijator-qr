@@ -39,10 +39,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Built assets
 COPY --from=assets /app/public/build /app/public/build
 
-# Permissions
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
-  && chown -R www-data:www-data storage bootstrap/cache
-
 # Remove default nginx config
 RUN rm -f /etc/nginx/http.d/default.conf
 
@@ -53,9 +49,21 @@ set -e
 
 PORT="${PORT:-8080}"
 
+# --- PERMS: SQLite mora biti upisiv za www-data ---
+mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
+
+# ako koristiš sqlite u storage/
+touch storage/database.sqlite
+
+# dodeli prava www-data korisniku (php-fpm radi kao www-data)
+chown -R www-data:www-data storage bootstrap/cache
+
+# obavezno da folder + sqlite budu upisivi (SQLite pravi i -journal/-wal fajlove)
+chmod -R 775 storage bootstrap/cache
+chmod 664 storage/database.sqlite || true
+
 # Nginx config:
-# - BITNO: /livewire/ mora da ide kroz Laravel (inače 404 za livewire.js)
-# - BITNO: escape $ da ne bi shell "pojeo" nginx promenljive
+# - /livewire/ mora kroz Laravel (inače 404 za livewire.js)
 cat > /etc/nginx/http.d/app.conf <<EOF
 server {
   listen 0.0.0.0:${PORT};
@@ -63,7 +71,6 @@ server {
   root /app/public;
   index index.php;
 
-  # Livewire assets MUST hit Laravel, even though it's .js
   location ^~ /livewire/ {
     try_files \$uri \$uri/ /index.php?\$query_string;
   }
@@ -78,7 +85,6 @@ server {
     fastcgi_pass 127.0.0.1:9000;
   }
 
-  # Static assets (real files only)
   location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|woff2?)$ {
     try_files \$uri =404;
     expires 7d;
@@ -89,7 +95,6 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
-php artisan db:seed --force || true
 php artisan storage:link || true
 
 php-fpm -D
