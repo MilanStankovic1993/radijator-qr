@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # 2) PHP + Composer deps
-FROM php:8.2-cli AS app
+FROM php:8.3-cli AS app
 WORKDIR /app
 
 # System deps for intl + zip
