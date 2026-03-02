@@ -6,7 +6,7 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 
-# 2) PHP + Composer deps
+# 2) PHP runtime + Composer deps
 FROM php:8.3-cli AS app
 WORKDIR /app
 
@@ -30,14 +30,20 @@ COPY --from=assets /app/public/build /app/public/build
 # Install PHP deps
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Laravel cache (neće srušiti build ako nema env-a još)
-RUN php artisan config:cache || true && \
-    php artisan route:cache || true && \
-    php artisan view:cache || true
+# Writable dirs + storage (i sqlite fajl ako koristiš sqlite)
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache storage && \
+    chmod -R 777 storage bootstrap/cache && \
+    touch storage/database.sqlite && chmod 666 storage/database.sqlite
 
-# Ensure writable dirs
-RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache && \
-    chmod -R 777 storage bootstrap/cache
+# VAŽNO: ne pravimo config:cache u build-u
 
-# Railway provides PORT (fallback 8080)
-CMD sh -lc "echo PORT=${PORT:-8080} && php artisan migrate --force || true; php artisan storage:link || true; php -S 0.0.0.0:${PORT:-8080} -t public"
+CMD sh -lc "\
+  echo PORT=${PORT:-8080} && \
+  php artisan optimize:clear || true && \
+  php artisan migrate --force || true && \
+  php artisan storage:link || true && \
+  php artisan config:cache || true && \
+  php artisan route:cache || true && \
+  php artisan view:cache || true && \
+  php -S 0.0.0.0:${PORT:-8080} -t public \
+"
