@@ -35,45 +35,46 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
 
 RUN rm -f /etc/nginx/http.d/default.conf
 
-# start script (OVDE JE FIX: \$PORT ostaje literalno u fajlu)
-RUN printf '%s\n' \
-'#!/usr/bin/env sh' \
-'set -e' \
-'' \
-'PORT="${PORT:-8080}"' \
-'' \
-'cat > /etc/nginx/http.d/app.conf <<EOF' \
-'server {' \
-'  listen 0.0.0.0:'"\$PORT"';' \
-'  server_name _;' \
-'  root /app/public;' \
-'  index index.php;' \
-'' \
-'  location / {' \
-'    try_files $uri $uri/ /index.php?$query_string;' \
-'  }' \
-'' \
-'  location ~ \.php$ {' \
-'    include fastcgi_params;' \
-'    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;' \
-'    fastcgi_pass 127.0.0.1:9000;' \
-'  }' \
-'' \
-'  location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|woff2?)$ {' \
-'    try_files $uri =404;' \
-'    expires 7d;' \
-'    add_header Cache-Control "public, max-age=604800";' \
-'  }' \
-'}' \
-'EOF' \
-'' \
-'php artisan optimize:clear || true' \
-'php artisan migrate --force || true' \
-'php artisan storage:link || true' \
-'' \
-'php-fpm -D' \
-"nginx -g 'daemon off;'" \
-> /start.sh \
-&& chmod +x /start.sh
+# start script (FIX: nginx config se piše sigurnim heredoc-om)
+RUN cat > /start.sh <<'SH'
+#!/usr/bin/env sh
+set -e
+
+PORT="${PORT:-8080}"
+
+cat > /etc/nginx/http.d/app.conf <<EOF
+server {
+  listen 0.0.0.0:${PORT};
+  server_name _;
+  root /app/public;
+  index index.php;
+
+  location / {
+    try_files \$uri \$uri/ /index.php?\$query_string;
+  }
+
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_pass 127.0.0.1:9000;
+  }
+
+  location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|woff2?)$ {
+    try_files \$uri =404;
+    expires 7d;
+    add_header Cache-Control "public, max-age=604800";
+  }
+}
+EOF
+
+php artisan optimize:clear || true
+php artisan migrate --force || true
+php artisan storage:link || true
+
+php-fpm -D
+exec nginx -g 'daemon off;'
+SH
+
+RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
