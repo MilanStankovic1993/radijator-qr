@@ -40,4 +40,4 @@ RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cac
     chmod -R 777 storage bootstrap/cache
 
 # Railway provides PORT
-CMD sh -lc "php artisan migrate --force || true && php artisan storage:link || true && php -S 0.0.0.0:${PORT} -t public"
+CMD sh -lc "echo PORT=${PORT:-8080} && php artisan migrate --force || true; php artisan storage:link || true; php -S 0.0.0.0:${PORT:-8080} -t public"
