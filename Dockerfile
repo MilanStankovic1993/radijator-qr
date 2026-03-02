@@ -26,7 +26,6 @@ RUN apk add --no-cache \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
-
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY --from=assets /app/public/build /app/public/build
@@ -34,19 +33,18 @@ COPY --from=assets /app/public/build /app/public/build
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
   && chown -R www-data:www-data storage bootstrap/cache
 
-# ukloni default nginx config
 RUN rm -f /etc/nginx/http.d/default.conf
 
-# start script (GENERISE nginx config u runtime-u sa pravim $PORT)
+# start script (OVDE JE FIX: \$PORT ostaje literalno u fajlu)
 RUN printf '%s\n' \
 '#!/usr/bin/env sh' \
 'set -e' \
 '' \
-': "${PORT:=8080}"' \
+'PORT="${PORT:-8080}"' \
 '' \
 'cat > /etc/nginx/http.d/app.conf <<EOF' \
 'server {' \
-'  listen 0.0.0.0:'"$PORT"';' \
+'  listen 0.0.0.0:'"\$PORT"';' \
 '  server_name _;' \
 '  root /app/public;' \
 '  index index.php;' \
@@ -71,7 +69,6 @@ RUN printf '%s\n' \
 '' \
 'php artisan optimize:clear || true' \
 'php artisan migrate --force || true' \
-'# storage:link zna da pukne ako vec postoji, ignorišemo' \
 'php artisan storage:link || true' \
 '' \
 'php-fpm -D' \
