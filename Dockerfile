@@ -6,38 +6,45 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 
-# 2) PHP deps (composer)
-FROM composer:2 AS vendor
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress
-
-# 3) Runtime: php-fpm + nginx
+# 2) Runtime (php-fpm + nginx)
 FROM php:8.3-fpm-alpine
 WORKDIR /app
 
-# system deps + php extensions
-RUN apk add --no-cache nginx bash icu-dev libzip-dev oniguruma-dev \
+# system deps + php extensions (UKLJUČUJE INTL!)
+RUN apk add --no-cache \
+    nginx \
+    bash \
+    icu-dev \
+    libzip-dev \
+    oniguruma-dev \
+    git \
+    unzip \
+    zip \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl pdo pdo_mysql zip \
     && rm -rf /var/cache/apk/*
 
-# copy app
+# instaliraj composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# kopiraj app
 COPY . .
 
-# copy vendor + built assets
-COPY --from=vendor /app/vendor /app/vendor
+# composer install (SADA intl postoji pa neće pucati)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# prebaci buildovane assete
 COPY --from=assets /app/public/build /app/public/build
 
 # permissions
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
-    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache
 
 # nginx config
 RUN rm -f /etc/nginx/http.d/default.conf
 RUN printf '%s\n' \
 'server {' \
-'  listen 0.0.0.0:${PORT};' \
+'  listen ${PORT};' \
 '  server_name _;' \
 '  root /app/public;' \
 '  index index.php;' \
@@ -53,9 +60,8 @@ RUN printf '%s\n' \
 '  }' \
 '' \
 '  location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|woff2?)$ {' \
-'    expires 7d;' \
-'    add_header Cache-Control "public, max-age=604800";' \
 '    try_files $uri =404;' \
+'    expires 7d;' \
 '  }' \
 '}' \
 > /etc/nginx/http.d/app.conf
@@ -69,10 +75,7 @@ RUN printf '%s\n' \
 'php artisan migrate --force || true' \
 'php artisan storage:link || true' \
 '' \
-'# start php-fpm (background)' \
 'php-fpm -D' \
-'' \
-'# start nginx (foreground)' \
 "nginx -g 'daemon off;'" \
 > /start.sh \
 && chmod +x /start.sh
