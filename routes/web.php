@@ -35,7 +35,16 @@ Route::get('/__debug/routes', function () {
         'routes'      => $out,
     ]);
 });
+Route::get('/__debug/panel-provider', function () {
+    $class = \App\Providers\Filament\AdminPanelProvider::class;
 
+    return response()->json([
+        'environment' => app()->environment(),
+        'class' => $class,
+        'class_exists' => class_exists($class),
+        'file' => class_exists($class) ? (new \ReflectionClass($class))->getFileName() : null,
+    ]);
+});
 /*
 |--------------------------------------------------------------------------
 | Web Routes
