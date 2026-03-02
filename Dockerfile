@@ -35,7 +35,7 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
 
 RUN rm -f /etc/nginx/http.d/default.conf
 
-# start script (FIX: nginx config se piše sigurnim heredoc-om)
+# start script (nginx config se piše sigurnim heredoc-om)
 RUN cat > /start.sh <<'SH'
 #!/usr/bin/env sh
 set -e
@@ -50,6 +50,16 @@ server {
   index index.php;
 
   location / {
+    try_files \$uri \$uri/ /index.php?\$query_string;
+  }
+
+  # VAŽNO: Livewire mora ići u Laravel (inače .js upada u static blok i dobiješ 404)
+  location ^~ /livewire/ {
+    try_files \$uri \$uri/ /index.php?\$query_string;
+  }
+
+  # Filament assets/endpoints takođe ne smeju da se "pojedu" static pravilima
+  location ^~ /filament/ {
     try_files \$uri \$uri/ /index.php?\$query_string;
   }
 
@@ -69,6 +79,8 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
+
+# storage:link ume da failuje kad već postoji → ne ruši container
 php artisan storage:link || true
 
 php-fpm -D
