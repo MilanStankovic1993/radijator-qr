@@ -9,6 +9,7 @@
     *{ box-sizing:border-box; }
     html,body{ margin:0; padding:0; background:#fff; color:#111; font-family: Arial, Helvetica, sans-serif; }
 
+    /* PRINT defaults (A4) */
     @page { size: A4; margin: 10mm; }
 
     body{
@@ -19,52 +20,69 @@
       align-items:flex-start;
     }
 
+    /* ===== SCREEN (mobile/desktop) container ===== */
     .sheet{
-      width: 190mm;
+      width: min(980px, calc(100vw - 24px));
       background:#fff;
       border:1px solid #d1d5db;
-      padding: 10mm 10mm 8mm;
+      border-radius: 14px;
+      padding: 18px;
     }
 
+    /* ===== PRINT overrides ===== */
     @media print{
       body{ background:#fff; padding:0; }
-      .sheet{ border:none; width:auto; padding:0; }
+      .sheet{
+        border:none;
+        border-radius:0;
+        width: 190mm;
+        padding: 10mm 10mm 8mm;
+      }
       .no-print{ display:none !important; }
     }
 
-    /* ===== Header (full-width like PO) ===== */
+    /* ===== Header (screen) ===== */
     .po-header{
-      padding-bottom: 4mm;
-      margin-bottom: 4mm;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
       border-bottom: 1px solid #9ca3af;
     }
     .po-header .row{
       display:flex;
       justify-content:space-between;
       align-items:flex-end;
-      gap: 8mm;
+      gap: 18px;
     }
-    .po-header .leftTitle{
-      font-size: 18pt;
-      font-weight: 800;
+    .po-header .leftTitle,
+    .po-header .rightNumber{
+      font-size: 26px;
+      font-weight: 900;
       margin: 0;
       line-height: 1.05;
     }
     .po-header .rightNumber{
-      font-size: 18pt;
-      font-weight: 800;
-      margin: 0;
-      line-height: 1.05;
       text-align:right;
-      word-break: break-word;
+      /* ključ: ne “slovo po slovo” */
+      word-break: normal;
+      overflow-wrap: anywhere;
     }
 
-    /* ===== Subheader: LOGO LEFT + bigger ===== */
+    /* ===== Print typography ===== */
+    @media print{
+      .po-header{ padding-bottom: 4mm; margin-bottom: 4mm; }
+      .po-header .row{ gap: 8mm; }
+      .po-header .leftTitle,
+      .po-header .rightNumber{ font-size: 18pt; }
+    }
+
+    /* ===== Subheader ===== */
     .subhead{
       display:flex;
       align-items:center;
-      gap: 8mm;
-      margin-bottom: 6mm;
+      justify-content:space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap:wrap;
     }
 
     .subhead .logo{
@@ -73,142 +91,210 @@
       align-items:center;
       justify-content:flex-start;
     }
+
     .subhead img{
-      width: 48mm; /* bigger */
+      width: 220px;
+      max-width: 60vw;
       height:auto;
       object-fit:contain;
       display:block;
     }
 
     .subhead .info{
-      flex:1;
-      min-width:0;
-      display:flex;
-      align-items:baseline;
-      gap: 6mm;
-      flex-wrap:wrap;
+      flex: 1 1 auto;
+      min-width: 240px;
+      text-align:right;
     }
-
     .subhead .info .company{
-      font-size: 12pt;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 900;
       margin:0;
       line-height:1.15;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap:anywhere;
     }
     .subhead .info .city{
-      font-size: 10pt;
+      font-size: 14px;
       font-weight: 700;
-      margin:0;
+      margin:6px 0 0;
       color:#111;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap:anywhere;
+    }
+
+    @media print{
+      .subhead{ gap: 8mm; margin-bottom: 6mm; }
+      .subhead img{ width: 48mm; max-width:none; }
+      .subhead .info{ text-align:left; display:flex; align-items:baseline; gap:6mm; flex-wrap:wrap; }
+      .subhead .info .company{ font-size: 12pt; white-space:nowrap; }
+      .subhead .info .city{ font-size: 10pt; margin:0; white-space:nowrap; }
     }
 
     /* ===== Boxes grid ===== */
     .grid2{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8mm;
-      margin-top: 4mm;
-      margin-bottom: 6mm;
+      gap: 18px;
+      margin-top: 10px;
+      margin-bottom: 18px;
     }
 
     .box{
       border:1px solid #9ca3af;
-      padding: 4.5mm;
-      min-height: 36mm;
+      padding: 14px;
+      min-height: 0;
+      border-radius: 12px;
     }
     .box .box-title{
-      font-size: 10pt;
-      font-weight: 800;
-      margin: 0 0 3mm 0;
+      font-size: 14px;
+      font-weight: 900;
+      margin: 0 0 12px 0;
     }
 
     table{ width:100%; border-collapse:collapse; }
 
     .kv td{
-      padding: 1.1mm 0;
-      font-size: 9.5pt;
+      padding: 7px 0;
+      font-size: 14px;
       vertical-align: top;
     }
     .kv td.k{
-      width: 46%;
+      width: 44%;
       color:#111;
-      font-weight: 700;
-      padding-right: 4mm;
+      font-weight: 800;
+      padding-right: 14px;
       white-space: nowrap;
     }
     .kv td.v{
       color:#111;
       font-weight: 400;
-      word-break: break-word;
+      overflow-wrap:anywhere;
+      word-break: normal;
+    }
+
+    @media print{
+      .grid2{ gap: 8mm; margin-top: 4mm; margin-bottom: 6mm; }
+      .box{ padding: 4.5mm; border-radius:0; min-height: 36mm; }
+      .box .box-title{ font-size: 10pt; margin: 0 0 3mm 0; }
+      .kv td{ padding: 1.1mm 0; font-size: 9.5pt; }
+      .kv td.k{ width: 46%; padding-right: 4mm; }
+    }
+
+    /* ===== Mobile: 1 column layout ===== */
+    @media (max-width: 720px){
+      body{ padding: 12px; }
+      .sheet{ padding: 14px; border-radius: 14px; }
+
+      .po-header .row{ flex-direction:column; align-items:flex-start; }
+      .po-header .rightNumber{ text-align:left; }
+
+      .subhead{ flex-direction:column; align-items:flex-start; }
+      .subhead .info{ text-align:left; min-width:0; width:100%; }
+
+      .grid2{ grid-template-columns: 1fr; }
+      .kv td.k{ width: 42%; }
     }
 
     .section-line{
-      margin: 4mm 0 2.5mm;
-      font-size: 10pt;
-      font-weight: 700;
+      margin: 16px 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    @media print{
+      .section-line{ margin: 4mm 0 2.5mm; font-size: 10pt; }
     }
 
     /* Items table */
     .items{
       width:100%;
       border:1px solid #111;
+      border-radius: 12px;
+      overflow:hidden;
     }
     .items thead th{
-      font-size: 9pt;
-      font-weight: 800;
+      font-size: 13px;
+      font-weight: 900;
       text-align:left;
-      padding: 2mm 2mm;
+      padding: 10px 10px;
       border-bottom:1px solid #111;
       background:#fff;
     }
     .items td{
-      font-size: 9.5pt;
-      padding: 2mm 2mm;
-      border-top:1px solid #9ca3af;
+      font-size: 14px;
+      padding: 10px 10px;
+      border-top:1px solid #e5e7eb;
       vertical-align: top;
     }
+
     .right{ text-align:right; }
     .center{ text-align:center; }
+
+    @media print{
+      .items{ border-radius:0; }
+      .items thead th{ font-size: 9pt; padding: 2mm 2mm; }
+      .items td{ font-size: 9.5pt; padding: 2mm 2mm; border-top:1px solid #9ca3af; }
+    }
+
+    /* Mobile: make table scrollable instead of crushing columns */
+    .table-scroll{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 720px){
+      .items{
+        min-width: 720px; /* spreči sabijanje; umesto toga scroll */
+      }
+    }
 
     /* Totals */
     .totals{
       display:flex;
       justify-content:flex-end;
-      margin-top: 5mm;
+      margin-top: 18px;
     }
-    .totals table{ width: 82mm; }
+    .totals table{ width: min(420px, 100%); }
     .totals td{
-      font-size: 10pt;
-      padding: 2mm 0;
+      font-size: 14px;
+      padding: 10px 0;
     }
     .totals td.k{
-      font-weight: 700;
-      padding-right: 6mm;
+      font-weight: 800;
+      padding-right: 18px;
     }
     .totals td.v{
-      font-weight: 700;
+      font-weight: 900;
       text-align:right;
     }
     .totals tr + tr td{
-      border-top:1px solid #9ca3af;
+      border-top:1px solid #e5e7eb;
+    }
+    @media print{
+      .totals{ margin-top: 5mm; }
+      .totals table{ width: 82mm; }
+      .totals td{ font-size: 10pt; padding: 2mm 0; }
+      .totals tr + tr td{ border-top:1px solid #9ca3af; }
+      .totals td.k{ padding-right: 6mm; }
     }
 
     /* Footer note */
     .footer{
-      margin-top: 8mm;
+      margin-top: 18px;
       border:1px solid #9ca3af;
-      padding: 4.5mm;
-      font-size: 9pt;
+      padding: 14px;
+      font-size: 13px;
       text-align:center;
       line-height: 1.35;
       color:#111;
+      border-radius: 12px;
+    }
+    @media print{
+      .footer{ margin-top: 8mm; padding: 4.5mm; font-size: 9pt; border-radius:0; }
     }
 
     /* Actions */
     .actions{
-      margin-top: 8mm;
+      margin-top: 18px;
       display:flex;
       gap:10px;
       justify-content:flex-end;
@@ -221,7 +307,7 @@
       background:#111;
       color:#fff;
       text-decoration:none;
-      font-weight: 800;
+      font-weight: 900;
       border-radius: 10px;
       font-size: 14px;
     }
@@ -231,13 +317,15 @@
     }
 
     .alert{
-      margin-top: 6mm;
+      margin-top: 16px;
       border:1px solid #f59e0b;
       background:#fffbeb;
       padding: 10px 12px;
-      font-weight: 700;
+      font-weight: 800;
       color:#92400e;
+      border-radius: 12px;
     }
+    @media print{ .alert{ border-radius:0; margin-top:6mm; } }
   </style>
 </head>
 <body>
@@ -375,36 +463,38 @@
 
   <div class="section-line">We require an order acknowledgment for the following items:</div>
 
-  <table class="items">
-    <thead>
-      <tr>
-        <th style="width:10mm;">Item</th>
-        <th>Material / Description</th>
-        <th class="right" style="width:22mm;">Quantity</th>
-        <th class="center" style="width:16mm;">UM</th>
-        <th class="right" style="width:34mm;">Unit Price</th>
-        <th class="right" style="width:34mm;">Net Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="center">10</td>
-        <td>
-          @foreach($descLines as $line)
-            <div>{{ $line }}</div>
-          @endforeach
+  <div class="table-scroll">
+    <table class="items">
+      <thead>
+        <tr>
+          <th style="width:70px;">Item</th>
+          <th>Material / Description</th>
+          <th class="right" style="width:110px;">Quantity</th>
+          <th class="center" style="width:80px;">UM</th>
+          <th class="right" style="width:140px;">Unit Price</th>
+          <th class="right" style="width:140px;">Net Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center">10</td>
+          <td>
+            @foreach($descLines as $line)
+              <div>{{ $line }}</div>
+            @endforeach
 
-          @if($label->note)
-            <div style="margin-top:2mm;"><strong>Note:</strong> {!! nl2br(e($label->note)) !!}</div>
-          @endif
-        </td>
-        <td class="right">{{ ($qty === null || $qty === '') ? '—' : $qty }}</td>
-        <td class="center">{{ $um }}</td>
-        <td class="right">{{ $unitPriceDisplay }}</td>
-        <td class="right">{{ $netAmountDisplay }}</td>
-      </tr>
-    </tbody>
-  </table>
+            @if($label->note)
+              <div style="margin-top:10px;"><strong>Note:</strong> {!! nl2br(e($label->note)) !!}</div>
+            @endif
+          </td>
+          <td class="right">{{ ($qty === null || $qty === '') ? '—' : $qty }}</td>
+          <td class="center">{{ $um }}</td>
+          <td class="right">{{ $unitPriceDisplay }}</td>
+          <td class="right">{{ $netAmountDisplay }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="totals">
     <table>
