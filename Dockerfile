@@ -10,7 +10,6 @@ RUN npm run build
 FROM php:8.3-fpm-alpine
 WORKDIR /app
 
-# system deps + php extensions (UKLJUČUJE INTL!)
 RUN apk add --no-cache \
     nginx \
     bash \
@@ -20,31 +19,34 @@ RUN apk add --no-cache \
     git \
     unzip \
     zip \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install intl pdo pdo_mysql zip \
-    && rm -rf /var/cache/apk/*
+  && docker-php-ext-configure intl \
+  && docker-php-ext-install intl pdo pdo_mysql zip \
+  && rm -rf /var/cache/apk/*
 
-# instaliraj composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# kopiraj app
 COPY . .
 
-# composer install (SADA intl postoji pa neće pucati)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# prebaci buildovane assete
 COPY --from=assets /app/public/build /app/public/build
 
-# permissions
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+  && chown -R www-data:www-data storage bootstrap/cache
 
-# nginx config
+# ukloni default nginx config
 RUN rm -f /etc/nginx/http.d/default.conf
+
+# start script (GENERISE nginx config u runtime-u sa pravim $PORT)
 RUN printf '%s\n' \
+'#!/usr/bin/env sh' \
+'set -e' \
+'' \
+': "${PORT:=8080}"' \
+'' \
+'cat > /etc/nginx/http.d/app.conf <<EOF' \
 'server {' \
-'  listen ${PORT};' \
+'  listen 0.0.0.0:'"$PORT"';' \
 '  server_name _;' \
 '  root /app/public;' \
 '  index index.php;' \
@@ -62,17 +64,14 @@ RUN printf '%s\n' \
 '  location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|woff2?)$ {' \
 '    try_files $uri =404;' \
 '    expires 7d;' \
+'    add_header Cache-Control "public, max-age=604800";' \
 '  }' \
 '}' \
-> /etc/nginx/http.d/app.conf
-
-# start script
-RUN printf '%s\n' \
-'#!/usr/bin/env sh' \
-'set -e' \
+'EOF' \
 '' \
 'php artisan optimize:clear || true' \
 'php artisan migrate --force || true' \
+'# storage:link zna da pukne ako vec postoji, ignorišemo' \
 'php artisan storage:link || true' \
 '' \
 'php-fpm -D' \
