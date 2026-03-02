@@ -1,0 +1,29 @@
+{
+  "$schema": "https://railway.com/railpack.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "npm ci && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache"
+  },
+  "deploy": {
+    "startCommand": "php artisan migrate --force && php artisan storage:link || true && php -S 0.0.0.0:$PORT -t public"
+  },
+  "php": {
+    "extensions": [
+      "ctype",
+      "curl",
+      "dom",
+      "fileinfo",
+      "filter",
+      "hash",
+      "mbstring",
+      "openssl",
+      "pcre",
+      "pdo",
+      "session",
+      "tokenizer",
+      "xml",
+      "intl",
+      "zip"
+    ]
+  }
+}
