@@ -2,7 +2,7 @@
 FROM node:22-alpine AS assets
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 
@@ -28,7 +28,7 @@ COPY . .
 COPY --from=assets /app/public/build /app/public/build
 
 # Install PHP deps
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Laravel cache (neće srušiti build ako nema env-a još)
 RUN php artisan config:cache || true && \
@@ -39,5 +39,5 @@ RUN php artisan config:cache || true && \
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache && \
     chmod -R 777 storage bootstrap/cache
 
-# Railway provides PORT
+# Railway provides PORT (fallback 8080)
 CMD sh -lc "echo PORT=${PORT:-8080} && php artisan migrate --force || true; php artisan storage:link || true; php -S 0.0.0.0:${PORT:-8080} -t public"
