@@ -156,8 +156,8 @@ class QrLabelResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('token')
-                    ->label('Token')
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
                     ->searchable()
                     ->copyable(),
 

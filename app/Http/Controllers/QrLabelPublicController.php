@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\QrLabel;
+use Illuminate\Http\Response;
 
 class QrLabelPublicController extends Controller
 {
@@ -12,10 +13,14 @@ class QrLabelPublicController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
-        if ($label->isDisabled()) {
-            abort(410, 'Ova etiketa je deaktivirana.');
+        // ✅ Disabled: prikaži poruku (bez detalja/bez QR-a)
+        if ($label->disabled_at) {
+            return response()
+                ->view('qr-labels.disabled', compact('label'))
+                ->setStatusCode(Response::HTTP_OK);
         }
 
+        // ✅ Active: postojeći public view (tvoj fajl: resources/views/qr-labels/public-show.blade.php)
         return view('qr-labels.public-show', compact('label'));
     }
 
@@ -25,11 +30,14 @@ class QrLabelPublicController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
-        if ($label->isDisabled()) {
-            abort(410, 'Ova etiketa je deaktivirana.');
+        // ✅ Disabled: print-friendly poruka (bez valid QR-a)
+        if ($label->disabled_at) {
+            return response()
+                ->view('qr-labels.disabled-print', compact('label'))
+                ->setStatusCode(Response::HTTP_OK);
         }
 
-        // print view (A4 / Zebra – kako već imaš)
+        // ✅ Active: tvoj print view (tvoj fajl: resources/views/qr-labels/public-print-zebra.blade.php)
         return view('qr-labels.public-print-zebra', compact('label'));
     }
 }
