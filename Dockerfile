@@ -49,18 +49,22 @@ set -e
 
 PORT="${PORT:-8080}"
 
-# --- PERMS: SQLite mora biti upisiv za www-data ---
+# --- PERMS: storage + sqlite mora biti upisiv za www-data ---
 mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
 
-# ako koristiš sqlite u storage/
-touch storage/database.sqlite
+# Ako koristiš sqlite u storage/ (Laravel default koji si ti namestio)
+if [ ! -f storage/database.sqlite ]; then
+  touch storage/database.sqlite
+fi
 
 # dodeli prava www-data korisniku (php-fpm radi kao www-data)
 chown -R www-data:www-data storage bootstrap/cache
 
-# obavezno da folder + sqlite budu upisivi (SQLite pravi i -journal/-wal fajlove)
+# obavezno da folder bude upisiv (SQLite pravi i -journal/-wal/-shm fajlove)
 chmod -R 775 storage bootstrap/cache
 chmod 664 storage/database.sqlite || true
+# pokrij i moguće sqlite pomoćne fajlove
+find storage -maxdepth 1 -type f -name "database.sqlite*" -exec chmod 664 {} \; || true
 
 # Nginx config:
 # - /livewire/ mora kroz Laravel (inače 404 za livewire.js)
@@ -95,7 +99,13 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
-php artisan db:seed --force || true
+
+# Seed samo ako eksplicitno kažeš (da ne duplira podatke svaki deploy)
+if [ "${RUN_SEED:-false}" = "true" ]; then
+  php artisan db:seed --force || true
+fi
+
+# storage:link bez pucanja ako već postoji
 php artisan storage:link || true
 
 php-fpm -D
@@ -105,3 +115,6 @@ SH
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
+
+// Napomene:
+// Napravi upustva za koriscenje app
