@@ -99,11 +99,7 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
-
-# Seed samo ako eksplicitno kažeš (da ne duplira podatke svaki deploy)
-if [ "${RUN_SEED:-false}" = "true" ]; then
-  php artisan db:seed --force || true
-fi
+php artisan db:seed --force || true
 
 # storage:link bez pucanja ako već postoji
 php artisan storage:link || true
