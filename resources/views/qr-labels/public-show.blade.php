@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- bitno: viewport ostaje -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Purchase order {{ $label->token }}</title>
+
+  <!-- ✅ TAB ICON (favicon) - stavi fajlove u /public -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
   <style>
     *{ box-sizing:border-box; }
@@ -29,16 +35,30 @@
       padding: 18px;
     }
 
-    /* ===== PRINT overrides ===== */
+    /* ===== PRINT overrides (A4 layout ALWAYS) ===== */
     @media print{
-      body{ background:#fff; padding:0; }
+      html, body{ background:#fff !important; }
+      body{
+        padding:0 !important;
+        display:block !important;   /* ne flex u printu */
+      }
       .sheet{
-        border:none;
-        border-radius:0;
-        width: 190mm;
-        padding: 10mm 10mm 8mm;
+        border:none !important;
+        border-radius:0 !important;
+        width: 190mm !important;
+        padding: 10mm 10mm 8mm !important;
       }
       .no-print{ display:none !important; }
+
+      /* bitno: na printu nema horizontalnog scroll-a */
+      .table-scroll{ overflow: visible !important; }
+      .items{ min-width: 0 !important; }
+
+      /* spreči random page-break */
+      .items, .totals, .footer, .grid2, .box { page-break-inside: avoid; break-inside: avoid; }
+      .items tr { page-break-inside: avoid; break-inside: avoid; }
+
+      @page { size: A4; margin: 10mm; }
     }
 
     /* ===== Header (screen) ===== */
@@ -62,7 +82,6 @@
     }
     .po-header .rightNumber{
       text-align:right;
-      /* ključ: ne “slovo po slovo” */
       word-break: normal;
       overflow-wrap: anywhere;
     }
@@ -180,8 +199,8 @@
       .kv td.k{ width: 46%; padding-right: 4mm; }
     }
 
-    /* ===== Mobile: 1 column layout ===== */
-    @media (max-width: 720px){
+    /* ✅ Mobile: SAMO SCREEN. Ne utiče na print preview */
+    @media screen and (max-width: 720px){
       body{ padding: 12px; }
       .sheet{ padding: 14px; border-radius: 14px; }
 
@@ -210,7 +229,17 @@
       border:1px solid #111;
       border-radius: 12px;
       overflow:hidden;
+      table-layout: fixed; /* ✅ stabilne kolone */
     }
+
+    /* ✅ kolone (SCREEN default) */
+    .items col.col-item{ width:70px; }
+    .items col.col-desc{ width:auto; }
+    .items col.col-qty{ width:110px; }
+    .items col.col-um{ width:80px; }
+    .items col.col-unit{ width:140px; }
+    .items col.col-net{ width:140px; }
+
     .items thead th{
       font-size: 13px;
       font-weight: 900;
@@ -224,26 +253,59 @@
       padding: 10px 10px;
       border-top:1px solid #e5e7eb;
       vertical-align: top;
+      overflow-wrap:anywhere;
+      word-break: normal;
     }
 
     .right{ text-align:right; }
     .center{ text-align:center; }
 
+    /* ✅ opis: default (screen) kao pre */
+    .desc-line{ display:block; }
+    .desc-note{ margin-top:10px; }
+
     @media print{
       .items{ border-radius:0; }
       .items thead th{ font-size: 9pt; padding: 2mm 2mm; }
-      .items td{ font-size: 9.5pt; padding: 2mm 2mm; border-top:1px solid #9ca3af; }
+      .items td{ font-size: 9pt; padding: 2mm 2mm; border-top:1px solid #9ca3af; line-height:1.15; }
+
+      /* ✅ print: SUZI ostale kolone da Material dobije više prostora */
+      .items col.col-item{ width:12mm; }
+      .items col.col-qty{ width:16mm; }
+      .items col.col-um{ width:10mm; }
+      .items col.col-unit{ width:18mm; }
+      .items col.col-net{ width:20mm; }
+      /* desc ostaje auto = maksimalno */
+
+      /* ✅ print: SPoji linije opisa u “tekući” tekst (da ne bude duguljasto) */
+      .desc-line{
+        display:inline;
+        white-space: normal;
+      }
+      .desc-line:after{
+        content: " • ";
+      }
+      .desc-line:last-child:after{
+        content: "";
+      }
+
+      /* note neka ide u novi red i malo manjim */
+      .desc-note{
+        margin-top: 1.5mm;
+        font-size: 8.5pt;
+        line-height: 1.15;
+      }
     }
 
-    /* Mobile: make table scrollable instead of crushing columns */
+    /* Mobile: table scroll on SCREEN only */
     .table-scroll{
       width:100%;
       overflow-x:auto;
       -webkit-overflow-scrolling: touch;
     }
-    @media (max-width: 720px){
+    @media screen and (max-width: 720px){
       .items{
-        min-width: 720px; /* spreči sabijanje; umesto toga scroll */
+        min-width: 720px; /* na telefonu skrol, umesto sabijanja */
       }
     }
 
@@ -270,7 +332,7 @@
       border-top:1px solid #e5e7eb;
     }
     @media print{
-      .totals{ margin-top: 5mm; }
+      .totals{ margin-top: 4mm; }
       .totals table{ width: 82mm; }
       .totals td{ font-size: 10pt; padding: 2mm 0; }
       .totals tr + tr td{ border-top:1px solid #9ca3af; }
@@ -289,7 +351,7 @@
       border-radius: 12px;
     }
     @media print{
-      .footer{ margin-top: 8mm; padding: 4.5mm; font-size: 9pt; border-radius:0; }
+      .footer{ margin-top: 6mm; padding: 4mm; font-size: 9pt; border-radius:0; }
     }
 
     /* Actions */
@@ -377,14 +439,14 @@
     'Terms of delivery' => $label->terms_delivery ?: '—',
   ];
 
-  $descLines = array_filter([
+  $descLines = array_values(array_filter([
     $label->ga_code ? ($label->ga_code . ' — ' . ($label->ga_name ?: '')) : ($label->ga_name ?: null),
     $label->ga_item_number ? ('GA Item No.: ' . $label->ga_item_number) : null,
     $label->ga_internal_number ? ('GA Internal No.: ' . $label->ga_internal_number) : null,
     $label->ri_code ? ('RI Code: ' . $label->ri_code . ' — ' . ($label->ri_name ?: '')) : ($label->ri_name ? ('RI: ' . $label->ri_name) : null),
     $label->ri_item_number ? ('RI Item No.: ' . $label->ri_item_number) : null,
     $label->ri_doc_number ? ('Goods receipt / Delivery note: ' . $label->ri_doc_number) : null,
-  ]);
+  ]));
 
   $um = $label->um ?: 'PC';
 @endphp
@@ -465,14 +527,22 @@
 
   <div class="table-scroll">
     <table class="items">
+      <colgroup>
+        <col class="col-item">
+        <col class="col-desc">
+        <col class="col-qty">
+        <col class="col-um">
+        <col class="col-unit">
+        <col class="col-net">
+      </colgroup>
       <thead>
         <tr>
-          <th style="width:70px;">Item</th>
+          <th class="center">Item</th>
           <th>Material / Description</th>
-          <th class="right" style="width:110px;">Quantity</th>
-          <th class="center" style="width:80px;">UM</th>
-          <th class="right" style="width:140px;">Unit Price</th>
-          <th class="right" style="width:140px;">Net Amount</th>
+          <th class="right">Quantity</th>
+          <th class="center">UM</th>
+          <th class="right">Unit Price</th>
+          <th class="right">Net Amount</th>
         </tr>
       </thead>
       <tbody>
@@ -480,11 +550,11 @@
           <td class="center">10</td>
           <td>
             @foreach($descLines as $line)
-              <div>{{ $line }}</div>
+              <span class="desc-line">{{ $line }}</span>
             @endforeach
 
             @if($label->note)
-              <div style="margin-top:10px;"><strong>Note:</strong> {!! nl2br(e($label->note)) !!}</div>
+              <div class="desc-note"><strong>Note:</strong> {!! nl2br(e($label->note)) !!}</div>
             @endif
           </td>
           <td class="right">{{ ($qty === null || $qty === '') ? '—' : $qty }}</td>
