@@ -60,7 +60,7 @@ class QrLabelResource extends Resource
                         ->label('Jedinica mere (UM)')
                         ->helperText('Npr: PC, KG, M...')
                         ->maxLength(20)
-                        ->default('PC'),
+                        ->default('KG'),
 
                     Forms\Components\TextInput::make('price')
                         ->label('Cena')
@@ -161,6 +161,15 @@ class QrLabelResource extends Resource
                     ->searchable()
                     ->copyable(),
 
+                Tables\Columns\IconColumn::make('active_status')
+                    ->label('Status')
+                    ->boolean()
+                    ->getStateUsing(fn (QrLabel $record) => ! $record->isDisabled())
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+
                 Tables\Columns\TextColumn::make('po_number')
                     ->label('Porudžbenica')
                     ->searchable()
@@ -199,8 +208,30 @@ class QrLabelResource extends Resource
                     ->dateTime('d.m.Y H:i'),
             ])
             ->defaultSort('id', 'desc')
+            ->filters([
+                Tables\Filters\Filter::make('active')
+                    ->label('Samo aktivne')
+                    ->query(fn ($query) => $query->whereNull('disabled_at')),
+
+                Tables\Filters\Filter::make('disabled')
+                    ->label('Samo deaktivirane')
+                    ->query(fn ($query) => $query->whereNotNull('disabled_at')),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+
+                Tables\Actions\Action::make('toggle')
+                    ->label(fn (QrLabel $record) => $record->isDisabled() ? 'Enable' : 'Disable')
+                    ->icon(fn (QrLabel $record) => $record->isDisabled() ? 'heroicon-o-check' : 'heroicon-o-x-mark')
+                    ->color(fn (QrLabel $record) => $record->isDisabled() ? 'success' : 'danger')
+                    ->requiresConfirmation()
+                    ->action(function (QrLabel $record): void {
+                        if ($record->isDisabled()) {
+                            $record->enable();
+                        } else {
+                            $record->disable();
+                        }
+                    }),
 
                 Tables\Actions\Action::make('document')
                     ->label('Dokument')

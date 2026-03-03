@@ -44,6 +44,7 @@
       justify-content:space-between;
       margin-top: 1mm;
       margin-bottom: 3mm;
+      gap: 10px;
     }
     .doc-header .left{
       font-size: 13px;
@@ -159,6 +160,7 @@
     .mid-cell .v.smallv{
       font-weight:700;
       font-size: 11px;
+      line-height: 1.35;
     }
 
     .footer{
@@ -186,6 +188,7 @@
       display:flex;
       gap:10px;
       justify-content:flex-end;
+      flex-wrap: wrap;
     }
     .btn{
       border:1px solid #e5e7eb;
@@ -201,9 +204,89 @@
       border-color:#111827;
     }
 
+    /* ✅ SAMO ZA TELEFON (SCREEN). Ne dira print. */
+    @media screen and (max-width: 720px){
+      body{ padding: 12px; }
+
+      /* da stane lepo na ekran */
+      .sheet{
+        width: calc(100vw - 24px);
+        padding: 14px;
+      }
+
+      /* na telefonu ne forsiramo mm A4, nego fluid */
+      .page{
+        width: auto;
+        min-height: auto;
+      }
+
+      .doc-header{
+        flex-direction: column;
+        align-items:flex-start;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .doc-header .left{
+        font-size: 14px;
+      }
+      .doc-header .right{
+        font-size: 12px;
+      }
+
+      .head{
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .qr-s{
+        width: 96px;
+        height: 96px;
+        padding: 8px;
+      }
+
+      .brand{
+        justify-content:flex-start;
+      }
+      .brand .wrap{
+        text-align:left;
+        align-items:flex-start;
+      }
+      .brand img{
+        width: min(240px, 70vw);
+      }
+
+      .top-meta{
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .mid-row{
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .footer{
+        margin-top: 18px;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .no-print{
+        justify-content: stretch;
+      }
+      .btn{
+        width: 100%;
+        text-align:center;
+      }
+    }
+
+    /* ✅ PRINT OSTAVLJAMO KAKO JE BILO (tvoj dobar print) */
     @media print {
       body{ background:#fff; padding:0; display:block; }
-      .sheet{ border:0; box-shadow:none; padding:0; border-radius:0; }
+
+      /* bitno: ako je .sheet dobio width na mobilnom, ovde ga “resetujemo” */
+      .sheet{ width:auto; border:0; box-shadow:none; padding:0; border-radius:0; }
+
       .page{ width:auto; min-height:auto; }
       .no-print{ display:none !important; }
       @page { size: A4; margin: 10mm; }
@@ -227,7 +310,7 @@
   // Codes (their / ours)
   $codeTheir = trim((string) ($label->ga_code ?? ''));
   $codeOurs  = trim((string) ($label->ri_code ?? ''));
-  
+
   // Names (their / ours)
   $nameTheir = trim((string) ($label->ga_name ?? ''));
   $nameOurs  = trim((string) ($label->ri_name ?? ''));
@@ -310,15 +393,15 @@
         </div>
       </div>
 
-    <div class="mid-cell">
-      <div class="k">Code (Group Atlantic / Radijator)</div>
-      <div class="v">
-        {{ $codeTheir !== '' ? $codeTheir : '—' }}
-        @if($codeOurs !== '')
-          <span class="muted"> / </span>{{ $codeOurs }}
-        @endif
+      <div class="mid-cell">
+        <div class="k">Code (Group Atlantic / Radijator)</div>
+        <div class="v">
+          {{ $codeTheir !== '' ? $codeTheir : '—' }}
+          @if($codeOurs !== '')
+            <span class="muted"> / </span>{{ $codeOurs }}
+          @endif
+        </div>
       </div>
-    </div>
 
       <div class="mid-cell">
         <div class="k">Note</div>

@@ -115,6 +115,3 @@ SH
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
-
-// Napomene:
-// Napravi upustva za koriscenje app
