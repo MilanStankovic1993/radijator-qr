@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use App\Models\QrLabel;
+use App\Observers\QrLabelObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,5 +19,6 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
+        QrLabel::observe(QrLabelObserver::class);
     }
 }

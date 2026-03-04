@@ -7,11 +7,12 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -49,7 +50,8 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // privremeno pusti sve (kasnije suzimo na admin email ili role)
-        return true;
+        // U Filament ulaze samo korisnici sa rolom super_admin ili admin.
+        // (To ti je “sigurnosna brava” na ulazu.)
+        return $this->hasAnyRole(['super_admin', 'admin']);
     }
 }

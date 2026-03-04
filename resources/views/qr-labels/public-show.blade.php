@@ -579,12 +579,6 @@
     </table>
   </div>
 
-  <div class="footer">
-    PLEASE NOTE: Please include our document number and item references on all your documents
-    (order confirmation, delivery note, invoice, etc.).<br>
-    Loading / unloading hours: Monday–Friday 07:00–12:00 and 12:30–14:30.
-  </div>
-
   <div class="actions no-print">
     <a class="btn" href="{{ route('qr-labels.public.print', $label->token) }}" target="_blank">Print (A4)</a>
     <button class="btn secondary" type="button" onclick="window.print()">Print this page</button>

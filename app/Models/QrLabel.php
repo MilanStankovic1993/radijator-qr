@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class QrLabel extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'qr_labels';
 
     protected $fillable = [
@@ -44,7 +48,13 @@ class QrLabel extends Model
         'terms_delivery',
 
         'note',
+
+        // audit
         'created_by',
+        'updated_by',
+        'deleted_by',
+
+        // status
         'disabled_at',
     ];
 
@@ -53,6 +63,7 @@ class QrLabel extends Model
         'quantity'    => 'decimal:3',
         'price'       => 'decimal:2',
         'disabled_at' => 'datetime',
+        'deleted_at'  => 'datetime',
     ];
 
     /*
@@ -67,6 +78,26 @@ class QrLabel extends Model
             if (blank($m->token)) {
                 $m->token = Str::upper(Str::random(10));
             }
+
+            if (Auth::check() && blank($m->created_by)) {
+                $m->created_by = Auth::id();
+            }
+        });
+
+        static::updating(function (self $m) {
+            if (Auth::check()) {
+                $m->updated_by = Auth::id();
+            }
+        });
+
+        static::deleting(function (self $m) {
+            // samo na soft delete (ne forceDelete)
+            if (! $m->isForceDeleting() && Auth::check()) {
+                $m->deleted_by = Auth::id();
+
+                // upiši deleted_by pre nego što se postavi deleted_at
+                $m->saveQuietly();
+            }
         });
     }
 
@@ -79,6 +110,16 @@ class QrLabel extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function editor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     /*

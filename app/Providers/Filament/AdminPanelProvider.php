@@ -27,6 +27,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->profile()
+            ->userMenuItems([
+                // ovde kasnije možemo dodati još stavki
+            ])
             ->brandName('Radijator inženjering Kraljevo')
             ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('3rem')
@@ -36,23 +40,24 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::body.end',
                 fn (): string => <<<HTML
-            <script>
-            window.addEventListener('copy-to-clipboard', (e) => {
-                const text = e.detail?.text ?? '';
-                if (!text) return;
-                if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(text);
-                } else {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                ta.remove();
-                }
-            });
-            </script>
-            HTML
+                    <script>
+                    window.addEventListener('copy-to-clipboard', (e) => {
+                        const text = e.detail?.text ?? '';
+                        if (!text) return;
+
+                        if (navigator.clipboard?.writeText) {
+                            navigator.clipboard.writeText(text);
+                        } else {
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            ta.remove();
+                        }
+                    });
+                    </script>
+                    HTML
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -62,7 +67,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
