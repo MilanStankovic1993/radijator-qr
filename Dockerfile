@@ -13,7 +13,7 @@ RUN npm run build
 FROM php:8.3-fpm-alpine
 WORKDIR /app
 
-# system deps + php extensions (UKLJUČUJE INTL)
+# system deps + php extensions (UKLJUČUJE INTL + GD za maatwebsite/excel)
 RUN apk add --no-cache \
     nginx \
     bash \
@@ -23,8 +23,22 @@ RUN apk add --no-cache \
     git \
     unzip \
     zip \
+    # runtime libs za GD
+    freetype \
+    libjpeg-turbo \
+    libpng \
+  && apk add --no-cache --virtual .build-deps \
+    # build deps za GD
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
   && docker-php-ext-configure intl \
   && docker-php-ext-install intl pdo pdo_mysql zip \
+  # GD
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install gd \
+  # cleanup build deps
+  && apk del .build-deps \
   && rm -rf /var/cache/apk/*
 
 # Composer
@@ -52,22 +66,17 @@ PORT="${PORT:-8080}"
 # --- PERMS: storage + sqlite mora biti upisiv za www-data ---
 mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
 
-# Ako koristiš sqlite u storage/ (Laravel default koji si ti namestio)
+# Ako koristiš sqlite u storage/
 if [ ! -f storage/database.sqlite ]; then
   touch storage/database.sqlite
 fi
 
-# dodeli prava www-data korisniku (php-fpm radi kao www-data)
 chown -R www-data:www-data storage bootstrap/cache
 
-# obavezno da folder bude upisiv (SQLite pravi i -journal/-wal/-shm fajlove)
 chmod -R 775 storage bootstrap/cache
 chmod 664 storage/database.sqlite || true
-# pokrij i moguće sqlite pomoćne fajlove
 find storage -maxdepth 1 -type f -name "database.sqlite*" -exec chmod 664 {} \; || true
 
-# Nginx config:
-# - /livewire/ mora kroz Laravel (inače 404 za livewire.js)
 cat > /etc/nginx/http.d/app.conf <<EOF
 server {
   listen 0.0.0.0:${PORT};
@@ -100,8 +109,6 @@ EOF
 php artisan optimize:clear || true
 php artisan migrate --force || true
 php artisan db:seed --force || true
-
-# storage:link bez pucanja ako već postoji
 php artisan storage:link || true
 
 php-fpm -D
