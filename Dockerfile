@@ -107,6 +107,7 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
+php artisan db:seed --class=RolesAndAdminSeeder --force || true
 php artisan storage:link || true
 
 php-fpm -D
