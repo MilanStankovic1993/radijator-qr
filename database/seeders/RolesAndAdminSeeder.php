@@ -4,20 +4,18 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndAdminSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // očisti permission cache
+        // clear permission cache
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // kreiraj role
+        // roles
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin']);
         $admin = Role::firstOrCreate(['name' => 'admin']);
 
@@ -28,7 +26,7 @@ class RolesAndAdminSeeder extends Seeder
             ['email' => 'milan.stankovic@radijator.rs'],
             [
                 'name' => 'Milan Stankovic',
-                'password' => bcrypt('28januar'),
+                'password' => Hash::make('28januar'),
             ]
         );
 
@@ -38,6 +36,8 @@ class RolesAndAdminSeeder extends Seeder
          * ADMIN USERS
          */
         $admins = [
+
+            // postojeći
             'mihajlo.ilic@radijator.rs',
             'bojan@radijator.rs',
             'bojantrajkovic@radijator.rs',
@@ -45,14 +45,35 @@ class RolesAndAdminSeeder extends Seeder
             'nenadmag@radijator.rs',
             'branko@radijator.rs',
             'dejan.vojinovic@radijator.rs',
+
+            // novi
+            'radovan@radijator.rs',
+            'dragana@radijator.rs',
+            'm.janic@radijator.rs',
+            'milan.vucicevic@radijator.rs',
+            'milena.stojnic@radijator.rs',
+            'luka.janic@radijator.rs',
+            'mateja.janic@radijator.rs',
+            'bilja@radijator.rs',
+            'radica@radijator.rs',
         ];
 
         foreach ($admins as $email) {
+
+            $namePart = explode('@', $email)[0];
+
+            // pretvori milan.vucicevic -> Milan Vucicevic
+            $nameParts = explode('.', $namePart);
+
+            $formattedName = collect($nameParts)
+                ->map(fn ($part) => ucfirst($part))
+                ->implode(' ');
+
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
-                    'name' => ucfirst(explode('@', $email)[0]),
-                    'password' => bcrypt('radijator123'),
+                    'name' => $formattedName,
+                    'password' => Hash::make('radijator123'),
                 ]
             );
 

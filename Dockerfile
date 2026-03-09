@@ -8,7 +8,6 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 
-
 # 2) Runtime (php-fpm + nginx)
 FROM php:8.3-fpm-alpine
 WORKDIR /app
@@ -108,7 +107,6 @@ EOF
 
 php artisan optimize:clear || true
 php artisan migrate --force || true
-php artisan db:seed --force || true
 php artisan storage:link || true
 
 php-fpm -D
