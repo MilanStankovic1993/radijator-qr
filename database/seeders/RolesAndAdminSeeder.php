@@ -36,24 +36,21 @@ class RolesAndAdminSeeder extends Seeder
          * ADMIN USERS
          */
         $admins = [
-
-            // postojeći
+            'm.janic@radijator.rs',
+            'dragana.sindjelic@radijator.rs',
             'mihajlo.ilic@radijator.rs',
+            'luka.janic@radijator.rs',
+            'mateja.janic@radijator.rs',
             'bojan@radijator.rs',
+            'radovan@radijator.rs',
             'bojantrajkovic@radijator.rs',
             'vladimir.knezevic@radijator.rs',
             'nenadmag@radijator.rs',
             'branko@radijator.rs',
             'dejan.vojinovic@radijator.rs',
-
-            // novi
-            'radovan@radijator.rs',
             'dragana@radijator.rs',
-            'm.janic@radijator.rs',
             'milan.vucicevic@radijator.rs',
             'milena.stojnic@radijator.rs',
-            'luka.janic@radijator.rs',
-            'mateja.janic@radijator.rs',
             'bilja@radijator.rs',
             'radica@radijator.rs',
         ];
