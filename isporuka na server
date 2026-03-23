@@ -1,0 +1,121 @@
+# 🚀 Radijator QR — Deploy Guide
+
+Ovaj dokument služi kao podsetnik za deploy i rad na produkcionom serveru.
+
+Server:
+- IP: 91.92.118.237
+- Path: /var/www/radijator-qr
+
+---
+
+# 🔐 1. Prijava na server
+
+```bash
+ssh ubuntu@91.92.118.237
+cd /var/www/radijator-qr
+```
+
+---
+
+# 📦 2. Standardni deploy (BEZ migracija)
+
+```bash
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan optimize:clear
+npm run build
+sudo systemctl restart php8.3-fpm
+sudo systemctl reload nginx
+```
+
+---
+
+# 🧱 3. Deploy SA migracijama
+
+```bash
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan optimize:clear
+php artisan migrate --force
+npm run build
+sudo systemctl restart php8.3-fpm
+sudo systemctl reload nginx
+```
+
+---
+
+# ⚠️ VAŽNO — MIGRACIJE
+
+## Bezbedno:
+```bash
+php artisan migrate --force
+```
+
+## OPASNO (BRIŠE PODATKE):
+```bash
+php artisan migrate:fresh --force
+php artisan migrate:fresh --seed --force
+php artisan db:seed --force
+```
+
+---
+
+# 🔄 4. Refresh aplikacije
+
+```bash
+php artisan optimize:clear
+npm run build
+sudo systemctl restart php8.3-fpm
+sudo systemctl reload nginx
+```
+
+---
+
+# 🧪 5. Provera baze
+
+```bash
+php artisan tinker
+```
+
+---
+
+# 🔧 6. Ako frontend ne radi
+
+```bash
+npm install
+npm run build
+```
+
+---
+
+# 📁 7. Logovi
+
+```bash
+tail -n 50 storage/logs/laravel.log
+sudo tail -n 50 /var/log/nginx/error.log
+```
+
+---
+
+# 🔐 8. Dozvole
+
+```bash
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+```
+
+---
+
+# 🌐 9. Test aplikacije
+
+http://91.92.118.237
+
+---
+
+# ❗ 10. Najveća opasnost
+
+```bash
+php artisan migrate:fresh --force
+```
+
+👉 Briše celu bazu.
