@@ -66,6 +66,11 @@ class QrLabelAuditResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                Tables\Columns\TextColumn::make('label.token')
+                    ->label('Token')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Korisnik')
                     ->searchable()
@@ -95,12 +100,11 @@ class QrLabelAuditResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                // ✅ filter po konkretnom QR-u (ovo je ključno za "Vidi istoriju")
                 Tables\Filters\SelectFilter::make('qr_label_id')
                     ->label('QR nalepnica')
                     ->options(fn () => QrLabel::query()
                         ->orderByDesc('id')
-                        ->limit(300) // dovoljno za UI; ako bude previše, preći na async/search
+                        ->limit(300)
                         ->get()
                         ->mapWithKeys(fn (QrLabel $l) => [
                             $l->id => "#{$l->id}" . ($l->po_number ? " • {$l->po_number}" : '') . " • {$l->token}",
@@ -116,6 +120,8 @@ class QrLabelAuditResource extends Resource
                         'update' => 'update',
                         'disable' => 'disable',
                         'enable' => 'enable',
+                        'print' => 'print',
+                        'unprint' => 'unprint',
                         'delete' => 'delete',
                         'restore' => 'restore',
                     ]),

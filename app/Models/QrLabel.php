@@ -15,6 +15,7 @@ class QrLabel extends Model
     protected $table = 'qr_labels';
 
     protected $fillable = [
+        'qr_item_mapping_id',
         'token',
 
         // zajedničko
@@ -49,6 +50,10 @@ class QrLabel extends Model
 
         'note',
 
+        // print
+        'printed_at',
+        'printed_by',
+
         // audit
         'created_by',
         'updated_by',
@@ -62,6 +67,7 @@ class QrLabel extends Model
         'load_date'   => 'date',
         'quantity'    => 'decimal:3',
         'price'       => 'decimal:2',
+        'printed_at'  => 'datetime',
         'disabled_at' => 'datetime',
         'deleted_at'  => 'datetime',
     ];
@@ -107,6 +113,11 @@ class QrLabel extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function itemMapping(): BelongsTo
+    {
+        return $this->belongsTo(QrItemMapping::class, 'qr_item_mapping_id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -120,6 +131,11 @@ class QrLabel extends Model
     public function deleter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function printer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'printed_by');
     }
 
     /*
@@ -144,6 +160,27 @@ class QrLabel extends Model
     {
         $this->update([
             'disabled_at' => null,
+        ]);
+    }
+
+    public function isPrinted(): bool
+    {
+        return ! is_null($this->printed_at);
+    }
+
+    public function markAsPrinted(): void
+    {
+        $this->update([
+            'printed_at' => now(),
+            'printed_by' => Auth::id(),
+        ]);
+    }
+
+    public function unmarkPrinted(): void
+    {
+        $this->update([
+            'printed_at' => null,
+            'printed_by' => null,
         ]);
     }
 }

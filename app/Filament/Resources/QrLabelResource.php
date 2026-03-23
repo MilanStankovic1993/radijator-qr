@@ -4,11 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Exports\QrLabelsExport;
 use App\Filament\Resources\QrLabelResource\Pages;
+use App\Models\QrItemMapping;
 use App\Models\QrLabel;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkAction;
@@ -32,9 +35,6 @@ class QrLabelResource extends Resource
         return auth()->user()?->hasRole('super_admin') ?? false;
     }
 
-    /**
-     * Export kolone (KEY = real field u bazi/modelu, VALUE = header u Excelu)
-     */
     protected static function exportColumns(): array
     {
         return [
@@ -65,6 +65,9 @@ class QrLabelResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            Forms\Components\Hidden::make('printed_at'),
+            Forms\Components\Hidden::make('printed_by'),
+
             Forms\Components\Section::make('Zajednički podaci')
                 ->columns(2)
                 ->schema([
@@ -104,6 +107,77 @@ class QrLabelResource extends Resource
                     Forms\Components\TextInput::make('terms_delivery')->label('Uslovi isporuke')->maxLength(255),
                 ]),
 
+            Forms\Components\Section::make('Mapiranje artikla')
+                ->schema([
+                    Forms\Components\Select::make('qr_item_mapping_id')
+                        ->label('Izaberi mapiranje artikla')
+                        ->options(fn () => QrItemMapping::query()
+                            ->orderBy('ri_item_number')
+                            ->get()
+                            ->mapWithKeys(fn (QrItemMapping $mapping) => [
+                                $mapping->id => $mapping->displayName(),
+                            ])
+                            ->all()
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if (! $state) {
+                                return;
+                            }
+
+                            $mapping = QrItemMapping::find($state);
+
+                            if (! $mapping) {
+                                return;
+                            }
+
+                            $set('ri_item_number', $mapping->ri_item_number);
+                            $set('ri_name', $mapping->ri_name);
+                            $set('ga_item_number', $mapping->ga_item_number);
+                            $set('ga_code', $mapping->ga_code);
+                            $set('ga_name', $mapping->ga_name);
+                        })
+                        ->createOptionForm([
+                            Forms\Components\Section::make('Radijator inženjering')
+                                ->columns(2)
+                                ->schema([
+                                    Forms\Components\TextInput::make('ri_item_number')
+                                        ->label('Broj artikla (Radijator Inž)')
+                                        ->maxLength(255),
+
+                                    Forms\Components\TextInput::make('ri_name')
+                                        ->label('Naziv (Radijator Inž) - Sklop/Deo')
+                                        ->maxLength(255)
+                                        ->columnSpanFull(),
+                                ]),
+
+                            Forms\Components\Section::make('Group Atlantic')
+                                ->columns(2)
+                                ->schema([
+                                    Forms\Components\TextInput::make('ga_item_number')
+                                        ->label('Broj artikla (Group Atlantic)')
+                                        ->maxLength(255),
+
+                                    Forms\Components\TextInput::make('ga_code')
+                                        ->label('Šifra (Group Atlantic) - Sklop/Deo')
+                                        ->maxLength(255),
+
+                                    Forms\Components\TextInput::make('ga_name')
+                                        ->label('Naziv (Group Atlantic) - Sklop/Deo')
+                                        ->maxLength(255)
+                                        ->columnSpanFull(),
+                                ]),
+                        ])
+                        ->createOptionUsing(function (array $data) {
+                            $mapping = QrItemMapping::create($data);
+
+                            return $mapping->id;
+                        })
+                        ->helperText('Izaberi postojeće mapiranje ili klikni + da dodaš novo.'),
+                ]),
+
             Forms\Components\Section::make('Interni podaci - Radijator inženjering')
                 ->columns(2)
                 ->schema([
@@ -136,7 +210,6 @@ class QrLabelResource extends Resource
         $exportColumns = static::exportColumns();
 
         return $table
-            // Default: prikazuj samo aktivne (neobrisane)
             ->modifyQueryUsing(fn (Builder $query) => $query->withoutTrashed())
             ->searchable()
             ->columns([
@@ -152,6 +225,12 @@ class QrLabelResource extends Resource
                     ->boolean()
                     ->getStateUsing(fn (QrLabel $record) => ! $record->isDisabled())
                     ->sortable(query: fn (Builder $query, string $direction) => $query->orderByRaw("CASE WHEN disabled_at IS NULL THEN 1 ELSE 0 END {$direction}"))
+                    ->toggleable(),
+
+                Tables\Columns\IconColumn::make('printed_status')
+                    ->label('Štampano')
+                    ->boolean()
+                    ->getStateUsing(fn (QrLabel $record) => $record->printed_at !== null)
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('po_number')->label('Porudžbenica')->searchable()->sortable()->toggleable()->wrap(),
@@ -174,12 +253,24 @@ class QrLabelResource extends Resource
                 Tables\Columns\TextColumn::make('ga_code')->label('GA šifra')->searchable()->sortable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('ga_name')->label('GA naziv')->searchable()->toggleable(isToggledHiddenByDefault: true)->wrap(),
 
+                Tables\Columns\TextColumn::make('printed_at')
+                    ->label('Odštampano')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->placeholder('-'),
+
+                Tables\Columns\TextColumn::make('printer.name')
+                    ->label('Štampao')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->placeholder('-'),
+
                 Tables\Columns\TextColumn::make('created_at')->label('Kreirano')->dateTime('d.m.Y H:i')->sortable()->toggleable(),
 
                 Tables\Columns\TextColumn::make('creator.name')->label('Kreirao')->sortable()->toggleable(isToggledHiddenByDefault: true)->placeholder('-'),
                 Tables\Columns\TextColumn::make('editor.name')->label('Menjao')->sortable()->toggleable(isToggledHiddenByDefault: true)->placeholder('-'),
 
-                // Obrisano polja prikazujemo samo super adminu (jer on može da vidi obrisane)
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Obrisano')
                     ->dateTime('d.m.Y H:i')
@@ -190,7 +281,6 @@ class QrLabelResource extends Resource
             ])
             ->defaultSort('id', 'desc')
             ->filters([
-                // Super admin: filter za obrisane / aktivne
                 Tables\Filters\Filter::make('not_deleted')
                     ->label('Aktivne')
                     ->visible(fn () => static::isSuperAdmin())
@@ -201,7 +291,15 @@ class QrLabelResource extends Resource
                     ->visible(fn () => static::isSuperAdmin())
                     ->query(fn (Builder $query) => $query->onlyTrashed()),
 
-                // ostali filteri za sve
+                Tables\Filters\Filter::make('not_printed')
+                    ->label('Samo neštampane')
+                    ->default()
+                    ->query(fn (Builder $query) => $query->whereNull('printed_at')),
+
+                Tables\Filters\Filter::make('printed')
+                    ->label('Samo štampane')
+                    ->query(fn (Builder $query) => $query->whereNotNull('printed_at')),
+
                 Tables\Filters\Filter::make('enabled')
                     ->label('Samo enable')
                     ->query(fn (Builder $query) => $query->whereNull('disabled_at')),
@@ -254,6 +352,12 @@ class QrLabelResource extends Resource
                     ->options(fn () => User::query()->orderBy('name')->pluck('name', 'id')->all())
                     ->searchable()
                     ->preload(),
+
+                Tables\Filters\SelectFilter::make('printed_by')
+                    ->label('Štampao')
+                    ->options(fn () => User::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -292,9 +396,13 @@ class QrLabelResource extends Resource
                             $new = $record->replicate();
                             $new->token = null;
                             $new->disabled_at = null;
+                            $new->printed_at = null;
+                            $new->printed_by = null;
                             $new->created_by = Auth::id();
 
-                            if ($new->isFillable('updated_by')) $new->updated_by = null;
+                            if ($new->isFillable('updated_by')) {
+                                $new->updated_by = null;
+                            }
 
                             $new->save();
 
@@ -310,10 +418,34 @@ class QrLabelResource extends Resource
                     Tables\Actions\Action::make('print')
                         ->label('Print')
                         ->icon('heroicon-o-printer')
-                        ->url(fn (QrLabel $record) => route('qr-labels.public.print', $record->token), true)
-                        ->openUrlInNewTab(),
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Potvrda štampe')
+                        ->modalDescription('Da li želiš da označiš ovu etiketu kao odštampanu i otvoriš print stranicu u novoj kartici?')
+                        ->action(function (QrLabel $record, $livewire) {
+                            $record->markAsPrinted();
 
-                    // Restore ima smisla samo super adminu i samo kad je obrisan record
+                            Notification::make()
+                                ->title('Etiketa je označena kao odštampana.')
+                                ->success()
+                                ->send();
+
+                            $url = route('qr-labels.public.print', $record->token);
+
+                            $livewire->dispatch('$refresh');
+                            $livewire->js("window.open('{$url}', '_blank')");
+                        }),
+
+                    Tables\Actions\Action::make('unprint')
+                        ->label('Vrati u neštampane')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('warning')
+                        ->visible(fn (QrLabel $record) => $record->printed_at !== null)
+                        ->requiresConfirmation()
+                        ->action(function (QrLabel $record) {
+                            $record->unmarkPrinted();
+                        }),
+
                     Tables\Actions\Action::make('restore')
                         ->label('Vrati')
                         ->icon('heroicon-o-arrow-uturn-left')
@@ -333,6 +465,26 @@ class QrLabelResource extends Resource
                 Tables\Actions\DeleteBulkAction::make()
                     ->label('Obriši označeno')
                     ->requiresConfirmation(),
+
+                BulkAction::make('mark_printed')
+                    ->label('Označi kao štampano')
+                    ->icon('heroicon-o-printer')
+                    ->requiresConfirmation()
+                    ->action(function ($records) {
+                        foreach ($records as $record) {
+                            $record->markAsPrinted();
+                        }
+                    }),
+
+                BulkAction::make('mark_unprinted')
+                    ->label('Vrati u neštampane')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->requiresConfirmation()
+                    ->action(function ($records) {
+                        foreach ($records as $record) {
+                            $record->unmarkPrinted();
+                        }
+                    }),
 
                 BulkAction::make('export')
                     ->label('Export Excel')
