@@ -145,6 +145,11 @@
         }
 
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+
             body {
                 background: #fff;
                 color: #000;
@@ -163,22 +168,46 @@
                 border: none;
                 border-radius: 0;
                 background: #fff;
+                overflow: visible;
             }
 
             thead {
                 background: #f3f4f6 !important;
             }
 
+            table {
+                width: 100%;
+                table-layout: fixed;
+            }
+
             th,
             td {
                 color: #000;
                 border: 1px solid #d1d5db;
-                font-size: 12px;
-                padding: 8px;
+                font-size: 11px;
+                padding: 6px;
+                white-space: normal;
+                word-break: break-word;
             }
 
             .thumb {
+                width: 42px;
+                height: 42px;
                 border: 1px solid #ccc;
+            }
+
+            .status-badge {
+                gap: 4px;
+                font-size: 10px;
+            }
+
+            .dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            .print-hide {
+                display: none;
             }
         }
     </style>
@@ -206,12 +235,12 @@
                         <th>Status</th>
                         <th>Štampano</th>
                         <th>Datum</th>
-                        <th>Br. narudžbenice dobavljača</th>
+                        <th class="print-hide">Br. narudžbenice dobavljača</th>
                         <th>Naziv</th>
                         <th>Tip kotla</th>
                         <th>Dimenzija</th>
                         <th>CODE PDM</th>
-                        <th>Težina (kg)</th>
+                        <th class="print-hide">Težina (kg)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -238,12 +267,12 @@
                                 </span>
                             </td>
                             <td>{{ optional($label->date)->format('d.m.Y') ?? '-' }}</td>
-                            <td>{{ $label->supplier_order_number ?: '-' }}</td>
+                            <td class="print-hide">{{ $label->supplier_order_number ?: '-' }}</td>
                             <td>{{ $label->name ?: '-' }}</td>
                             <td>{{ $label->boiler_type ?: '-' }}</td>
                             <td>{{ $label->dimension ?: '-' }}</td>
                             <td>{{ $label->code_pdm ?: '-' }}</td>
-                            <td>{{ filled($label->weight) ? number_format((float) $label->weight, 2, ',', '.') . ' kg' : '-' }}</td>
+                            <td class="print-hide">{{ filled($label->weight) ? number_format((float) $label->weight, 2, ',', '.') . ' kg' : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
