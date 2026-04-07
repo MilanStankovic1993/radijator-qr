@@ -78,9 +78,9 @@
         }
 
         table {
-            width: max-content;
-            min-width: 100%;
+            width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         thead {
@@ -94,7 +94,8 @@
             vertical-align: middle;
             text-align: left;
             font-size: 14px;
-            white-space: nowrap;
+            white-space: normal;
+            word-break: break-word;
         }
 
         th {
@@ -105,8 +106,26 @@
 
         td {
             color: #e5e7eb;
-            font-size: 30px;
+            font-size: 16px;
             font-weight: 600;
+        }
+
+        .col-id { width: 48px; }
+        .col-img { width: 88px; }
+        .col-status { width: 130px; }
+        .col-printed { width: 90px; }
+        .col-date { width: 115px; }
+        .col-name {
+            width: 360px;
+            overflow-wrap: anywhere;
+        }
+        .col-boiler { width: 130px; }
+        .col-code { width: 110px; }
+        .col-price { width: 90px; }
+        .col-qty { width: 90px; }
+
+        .compact-hide {
+            display: none;
         }
 
         .thumb {
@@ -209,6 +228,17 @@
             .print-hide {
                 display: none;
             }
+
+            .col-id { width: 4%; }
+            .col-img { width: 7%; }
+            .col-status { width: 10%; }
+            .col-printed { width: 7%; }
+            .col-date { width: 9%; }
+            .col-name { width: 34%; }
+            .col-boiler { width: 10%; }
+            .col-code { width: 8%; }
+            .col-price { width: 6%; }
+            .col-qty { width: 5%; }
         }
     </style>
 </head>
@@ -230,49 +260,53 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Slika</th>
-                        <th>Status</th>
-                        <th>Štampano</th>
-                        <th>Datum</th>
-                        <th class="print-hide">Br. narudžbenice dobavljača</th>
-                        <th>Naziv</th>
-                        <th>Tip kotla</th>
-                        <th>Dimenzija</th>
-                        <th>CODE PDM</th>
-                        <th class="print-hide">Težina (kg)</th>
+                        <th class="col-id">ID</th>
+                        <th class="col-img">Slika</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-printed">Štampano</th>
+                        <th class="col-date">Datum</th>
+                        <th class="col-order compact-hide">Br. narudžbenice dobavljača</th>
+                        <th class="col-name">Naziv</th>
+                        <th class="col-boiler">Tip kotla</th>
+                        <th class="col-dim compact-hide">Dimenzija</th>
+                        <th class="col-code">CODE PDM</th>
+                        <th class="col-price">Cena</th>
+                        <th class="col-qty">Količina</th>
+                        <th class="col-weight compact-hide">Težina (kg)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($labels as $label)
                         <tr>
-                            <td>{{ $label->id }}</td>
-                            <td>
+                            <td class="col-id">{{ $label->id }}</td>
+                            <td class="col-img">
                                 @if(!empty($label->picture_path))
                                     <img src="{{ asset('storage/' . $label->picture_path) }}" alt="Slika dela" class="thumb">
                                 @else
                                     <span class="muted">-</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="col-status">
                                 <span class="status-badge">
                                     <span class="dot {{ $label->disabled_at ? 'red' : 'green' }}"></span>
                                     {{ $label->disabled_at ? 'Neaktivan' : 'Aktivan' }}
                                 </span>
                             </td>
-                            <td>
+                            <td class="col-printed">
                                 <span class="status-badge">
                                     <span class="dot {{ $label->printed_at ? 'green' : 'red' }}"></span>
                                     {{ $label->printed_at ? 'Da' : 'Ne' }}
                                 </span>
                             </td>
-                            <td>{{ optional($label->date)->format('d.m.Y') ?? '-' }}</td>
-                            <td class="print-hide">{{ $label->supplier_order_number ?: '-' }}</td>
-                            <td>{{ $label->name ?: '-' }}</td>
-                            <td>{{ $label->boiler_type ?: '-' }}</td>
-                            <td>{{ $label->dimension ?: '-' }}</td>
-                            <td>{{ $label->code_pdm ?: '-' }}</td>
-                            <td class="print-hide">{{ filled($label->weight) ? number_format((float) $label->weight, 2, ',', '.') . ' kg' : '-' }}</td>
+                            <td class="col-date">{{ optional($label->date)->format('d.m.Y') ?? '-' }}</td>
+                            <td class="col-order compact-hide">{{ $label->supplier_order_number ?: '-' }}</td>
+                            <td class="col-name">{{ $label->name ?: '-' }}</td>
+                            <td class="col-boiler">{{ $label->boiler_type ?: '-' }}</td>
+                            <td class="col-dim compact-hide">{{ $label->dimension ?: '-' }}</td>
+                            <td class="col-code">{{ $label->code_pdm ?: '-' }}</td>
+                            <td class="col-price">{{ filled($label->price) ? number_format((float) $label->price, 2, ',', '.') : '-' }}</td>
+                            <td class="col-qty">{{ filled($label->quantity) ? number_format((float) $label->quantity, 2, ',', '.') : '-' }}</td>
+                            <td class="col-weight compact-hide">{{ filled($label->weight) ? number_format((float) $label->weight, 2, ',', '.') . ' kg' : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>

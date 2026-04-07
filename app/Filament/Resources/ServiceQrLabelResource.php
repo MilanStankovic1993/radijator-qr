@@ -171,21 +171,18 @@ class ServiceQrLabelResource extends Resource
                     ->label('Br. narudžbenice dobavljača')
                     ->searchable()
                     ->sortable()
-                    ->wrap()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Naziv')
                     ->searchable()
                     ->sortable()
-                    ->wrap()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('boiler_type')
                     ->label('Tip kotla')
                     ->searchable()
                     ->sortable()
-                    ->wrap()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('dimension')
@@ -216,7 +213,6 @@ class ServiceQrLabelResource extends Resource
                     ->label('Kupac')
                     ->searchable()
                     ->sortable()
-                    ->wrap()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('quantity')
