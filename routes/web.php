@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QrLabelController;
 use App\Http\Controllers\QrLabelPublicController;
+use App\Http\Controllers\ServiceQrLabelPublicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,7 @@ Route::get('/__debug/routes', function () {
         'routes'      => $out,
     ]);
 });
+
 Route::get('/__debug/panel-provider', function () {
     $class = \App\Providers\Filament\AdminPanelProvider::class;
 
@@ -45,6 +47,7 @@ Route::get('/__debug/panel-provider', function () {
         'file' => class_exists($class) ? (new \ReflectionClass($class))->getFileName() : null,
     ]);
 });
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,14 +59,37 @@ Route::get('/', function () {
 });
 
 /**
- * Public (QR scan)
- * - URL u QR kodu: /doc/{token}
+ * Public (QR scan) - standardne QR nalepnice
+ * URL u QR kodu: /doc/{token}
  */
-Route::get('/doc/{token}', [QrLabelPublicController::class, 'show'])
-    ->name('qr-labels.public.show');
+Route::prefix('doc')->group(function () {
+    Route::get('/{token}', [QrLabelPublicController::class, 'show'])
+        ->name('qr-labels.public.show');
 
-Route::get('/doc/{token}/print', [QrLabelPublicController::class, 'print'])
-    ->name('qr-labels.public.print');
+    Route::get('/{token}/print', [QrLabelPublicController::class, 'print'])
+        ->name('qr-labels.public.print');
+
+    Route::get('/{token}/print-direct', [QrLabelPublicController::class, 'printDirect'])
+        ->name('qr-labels.public.print-direct');
+});
+
+/**
+ * Public (QR scan) - servisni / part QR kodovi
+ * URL u QR kodu: /service-doc/{token}
+ */
+Route::prefix('service-doc')->group(function () {
+    Route::get('/{token}', [ServiceQrLabelPublicController::class, 'show'])
+        ->name('service-qr-labels.public.show');
+
+    Route::get('/{token}/print', [ServiceQrLabelPublicController::class, 'print'])
+        ->name('service-qr-labels.public.print');
+
+    Route::get('/{token}/zpl', [ServiceQrLabelPublicController::class, 'zpl'])
+        ->name('service-qr-labels.public.zpl');
+
+    Route::get('/{token}/print-direct', [ServiceQrLabelPublicController::class, 'printDirect'])
+        ->name('service-qr-labels.public.print-direct');
+});
 
 /**
  * Opciono: ručni unos mimo Filamenta
