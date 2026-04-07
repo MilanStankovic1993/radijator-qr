@@ -6,6 +6,7 @@ use App\Filament\Resources\ServiceQrLabelResource\Pages;
 use App\Http\Controllers\ServiceQrLabelPublicController;
 use App\Models\ServiceQrLabel;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -404,6 +405,29 @@ class ServiceQrLabelResource extends Resource
                     ->icon('heroicon-o-ellipsis-vertical'),
             ])
             ->bulkActions([
+Tables\Actions\BulkAction::make('preview_print_selected')
+    ->label('Pregled / štampa označenih')
+    ->icon('heroicon-o-printer')
+    ->color('warning')
+    ->requiresConfirmation()
+    ->action(function ($records) {
+        $ids = collect($records)
+            ->pluck('id')
+            ->implode(',');
+
+        if (blank($ids)) {
+            Notification::make()
+                ->title('Niste odabrali nijednu stavku.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        return redirect()->to(route('service-qr-labels.preview-print', [
+            'ids' => $ids,
+        ]));
+    }),
                 Tables\Actions\DeleteBulkAction::make()
                     ->label('Obriši označeno')
                     ->requiresConfirmation(),

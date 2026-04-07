@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QrLabelController;
 use App\Http\Controllers\QrLabelPublicController;
 use App\Http\Controllers\ServiceQrLabelPublicController;
+use App\Http\Controllers\ServiceQrLabelPreviewPrintController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,7 +91,8 @@ Route::prefix('service-doc')->group(function () {
     // Route::get('/{token}/print-direct', [ServiceQrLabelPublicController::class, 'printDirect'])
     //     ->name('service-qr-labels.public.print-direct');
 });
-
+Route::get('/service-qr-labels/preview-print', ServiceQrLabelPreviewPrintController::class)
+    ->name('service-qr-labels.preview-print');
 /**
  * Opciono: ručni unos mimo Filamenta
  */
