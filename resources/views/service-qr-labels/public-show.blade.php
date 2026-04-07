@@ -27,12 +27,18 @@
     }
 
     *{ box-sizing:border-box; }
-    body{
+
+    html, body{
       margin:0;
+      padding:0;
       color:var(--ink);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background:
         radial-gradient(circle at 0% 0%, #f6f9fc 0, #eef3f8 42%, #e8edf4 100%);
+    }
+
+    body{
+      min-height:100vh;
     }
 
     .sheet{
@@ -67,6 +73,7 @@
       justify-content:center;
       background:#fff;
       overflow:hidden;
+      flex-shrink:0;
     }
 
     .logo img{
@@ -81,8 +88,18 @@
       line-height:1.2;
     }
 
-    .title{ font-size:24px; font-weight:900; letter-spacing:.2px; }
-    .subtitle{ margin-top:2px; font-size:12px; color:var(--muted); font-weight:700; }
+    .title{
+      font-size:24px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    .subtitle{
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
 
     .doc-chip{
       text-align:right;
@@ -113,6 +130,7 @@
       grid-template-columns:260px 1fr;
       gap:16px;
       margin-bottom:16px;
+      align-items:stretch;
     }
 
     .image-card,
@@ -140,7 +158,12 @@
       padding:10px;
     }
 
-    .image-wrap img{ width:100%; height:100%; object-fit:contain; display:block; }
+    .image-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+    }
 
     .name{
       margin:0 0 10px;
@@ -150,7 +173,11 @@
       overflow-wrap:anywhere;
     }
 
-    .meta-row{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+    .meta-row{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:10px;
+    }
 
     .meta{
       border:1px solid var(--line);
@@ -168,9 +195,18 @@
       margin-bottom:4px;
     }
 
-    .meta .v{ font-size:15px; font-weight:900; overflow-wrap:anywhere; }
+    .meta .v{
+      font-size:15px;
+      font-weight:900;
+      overflow-wrap:anywhere;
+    }
 
-    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
 
     .box-title{
       margin:0 0 10px;
@@ -181,7 +217,10 @@
       color:#1e3a5f;
     }
 
-    table{ width:100%; border-collapse:collapse; }
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
 
     .kv td{
       padding:8px 0;
@@ -190,7 +229,10 @@
       vertical-align:top;
     }
 
-    .kv tr:last-child td{ border-bottom:none; }
+    .kv tr:last-child td{
+      border-bottom:none;
+    }
+
     .kv td.k{
       width:40%;
       color:#334155;
@@ -199,9 +241,14 @@
       white-space:nowrap;
     }
 
-    .kv td.v{ font-weight:600; overflow-wrap:anywhere; }
+    .kv td.v{
+      font-weight:600;
+      overflow-wrap:anywhere;
+    }
 
-    .box-wide .kv td.k{ width:30%; }
+    .box-wide .kv td.k{
+      width:30%;
+    }
 
     .footer-note{
       margin-top:16px;
@@ -241,9 +288,13 @@
       padding:10px 14px;
       font-weight:800;
       font-size:13px;
+      cursor:pointer;
     }
 
-    .btn.secondary{ background:#fff; color:var(--accent); }
+    .btn.secondary{
+      background:#fff;
+      color:var(--accent);
+    }
 
     .alert{
       margin-top:16px;
@@ -266,47 +317,202 @@
         text-align:left;
       }
 
-      .hero{ grid-template-columns:1fr; }
-      .meta-row{ grid-template-columns:1fr; }
-      .grid2{ grid-template-columns:1fr; }
-      .box-wide .kv td.k{ width:40%; }
+      .hero{
+        grid-template-columns:1fr;
+      }
+
+      .meta-row{
+        grid-template-columns:1fr;
+      }
+
+      .grid2{
+        grid-template-columns:1fr;
+      }
+
+      .box-wide .kv td.k{
+        width:40%;
+      }
     }
 
     @media (max-width: 620px){
-      .sheet{ width:calc(100vw - 18px); margin:9px auto; padding:12px; border-radius:12px; }
-      .name{ font-size:24px; }
-      .actions .btn{ width:100%; text-align:center; }
+      .sheet{
+        width:calc(100vw - 18px);
+        margin:9px auto;
+        padding:12px;
+        border-radius:12px;
+      }
+
+      .name{
+        font-size:24px;
+      }
+
+      .actions .btn{
+        width:100%;
+        text-align:center;
+      }
     }
 
     @media print{
-      @page { size:A4; margin:10mm; }
-      body{ background:#fff; }
+      @page{
+        size:A4;
+        margin:10mm;
+      }
+
+      html, body{
+        background:#fff !important;
+        width:auto !important;
+        height:auto !important;
+        overflow:visible !important;
+      }
+
+      body{
+        display:block !important;
+        min-height:auto !important;
+      }
+
       .sheet{
-        margin:0;
-        width:190mm;
-        border:none;
-        border-radius:0;
-        box-shadow:none;
-        padding:0;
+        width:auto !important;
+        max-width:none !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:none !important;
+        border-radius:0 !important;
+        box-shadow:none !important;
+      }
+
+      .no-print{
+        display:none !important;
       }
 
       .header,
       .image-card,
       .box,
-      .footer-note{
-        border-radius:0;
+      .footer-note,
+      .alert,
+      .meta,
+      .doc-chip{
+        border-radius:0 !important;
+        box-shadow:none !important;
       }
 
       .header{
-        margin-bottom:4mm;
-        padding:3mm;
+        padding:3mm !important;
+        margin:0 0 4mm 0 !important;
       }
 
-      .name{ font-size:18pt; }
-      .no-print{ display:none !important; }
-      .hero, .grid2, .box, .footer-note{
+      .logo{
+        width:14mm !important;
+        height:14mm !important;
+      }
+
+      .logo img{
+        width:10mm !important;
+      }
+
+      .title{
+        font-size:16pt !important;
+      }
+
+      .subtitle{
+        font-size:9pt !important;
+      }
+
+      .doc-chip .k{
+        font-size:8pt !important;
+      }
+
+      .doc-chip .v{
+        font-size:14pt !important;
+      }
+
+      .hero{
+        display:grid !important;
+        grid-template-columns:48mm 1fr !important;
+        gap:4mm !important;
+        margin-bottom:4mm !important;
+      }
+
+      .grid2{
+        display:grid !important;
+        grid-template-columns:1fr 1fr !important;
+        gap:4mm !important;
+        margin-bottom:4mm !important;
+      }
+
+      .image-card,
+      .box{
+        padding:3mm !important;
         break-inside:avoid;
         page-break-inside:avoid;
+      }
+
+      .image-wrap{
+        aspect-ratio:auto !important;
+        min-height:42mm !important;
+        height:42mm !important;
+        padding:2mm !important;
+      }
+
+      .name{
+        font-size:16pt !important;
+        margin-bottom:3mm !important;
+      }
+
+      .meta-row{
+        display:grid !important;
+        grid-template-columns:repeat(3, 1fr) !important;
+        gap:2.5mm !important;
+      }
+
+      .meta{
+        padding:2.5mm !important;
+      }
+
+      .meta .k{
+        font-size:7.5pt !important;
+      }
+
+      .meta .v{
+        font-size:10pt !important;
+      }
+
+      .box-title{
+        font-size:9pt !important;
+        margin:0 0 2mm 0 !important;
+      }
+
+      .kv td{
+        font-size:9pt !important;
+        padding:1.5mm 0 !important;
+      }
+
+      .kv td.k{
+        width:38% !important;
+        white-space:normal !important;
+      }
+
+      .box-wide .kv td.k{
+        width:28% !important;
+      }
+
+      .footer-note{
+        margin-top:4mm !important;
+        padding:3mm !important;
+        font-size:9pt !important;
+        line-height:1.35 !important;
+        break-inside:avoid;
+        page-break-inside:avoid;
+      }
+
+      .footer-note strong{
+        font-size:8pt !important;
+        margin-bottom:2mm !important;
+      }
+
+      .alert{
+        margin-top:4mm !important;
+        padding:2.5mm 3mm !important;
+        font-size:8.5pt !important;
       }
     }
   </style>
@@ -319,9 +525,7 @@
 
   $date = $label->date ? $label->date->format('d.m.Y') : $dash;
   $createdAt = $label->created_at ? $label->created_at->format('d.m.Y H:i') : $dash;
-  $updatedAt = $label->updated_at ? $label->updated_at->format('d.m.Y H:i') : $dash;
   $printedAt = $label->printed_at ? $label->printed_at->format('d.m.Y H:i') : $dash;
-  $disabledAt = $label->disabled_at ? $label->disabled_at->format('d.m.Y H:i') : $dash;
 
   $productInfo = [
     'Datum / Date' => $date,
@@ -353,10 +557,12 @@
     <div class="logo">
       <img src="{{ url('images/logo.png') }}" alt="Radijator">
     </div>
+
     <div class="title-wrap">
       <p class="title">Servisni QR dokument</p>
       <p class="subtitle">Radijator Inzenjering | 36000 Kraljevo, Serbia</p>
     </div>
+
     <div class="doc-chip">
       <div class="k">Broj dokumenta</div>
       <div class="v">{{ $docNumber }}</div>
@@ -376,15 +582,18 @@
 
     <div class="box">
       <h1 class="name">{{ $label->name ?: $dash }}</h1>
+
       <div class="meta-row">
         <div class="meta">
           <div class="k">CODE PDM</div>
           <div class="v">{{ $label->code_pdm ?: $dash }}</div>
         </div>
+
         <div class="meta">
           <div class="k">Kupac / Buyer</div>
           <div class="v">{{ $label->buyer ?: $dash }}</div>
         </div>
+
         <div class="meta">
           <div class="k">Token</div>
           <div class="v">{{ $label->token ?: $dash }}</div>
@@ -437,8 +646,7 @@
   </div>
 
   <div class="actions no-print">
-    <a class="btn" href="{{ route('service-qr-labels.public.print', $label->token) }}" target="_blank">Print (A4)</a>
-    <button class="btn secondary" type="button" onclick="window.print()">Print this page</button>
+    <button class="btn" type="button" onclick="window.print()">Štampaj dokument</button>
     <a class="btn secondary" href="{{ url('/') }}">Home</a>
   </div>
 
