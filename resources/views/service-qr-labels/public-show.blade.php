@@ -351,7 +351,7 @@
 <div class="sheet">
   <div class="header">
     <div class="logo">
-      <img src="{{ asset('images/logo-black.png') }}?v=1" alt="Radijator">
+      <img src="{{ url('images/logo.png') }}" alt="Radijator">
     </div>
     <div class="title-wrap">
       <p class="title">Servisni QR dokument</p>

@@ -84,11 +84,11 @@ Route::prefix('service-doc')->group(function () {
     Route::get('/{token}/print', [ServiceQrLabelPublicController::class, 'print'])
         ->name('service-qr-labels.public.print');
 
-    Route::get('/{token}/zpl', [ServiceQrLabelPublicController::class, 'zpl'])
-        ->name('service-qr-labels.public.zpl');
+    // Route::get('/{token}/zpl', [ServiceQrLabelPublicController::class, 'zpl'])
+    //     ->name('service-qr-labels.public.zpl');
 
-    Route::get('/{token}/print-direct', [ServiceQrLabelPublicController::class, 'printDirect'])
-        ->name('service-qr-labels.public.print-direct');
+    // Route::get('/{token}/print-direct', [ServiceQrLabelPublicController::class, 'printDirect'])
+    //     ->name('service-qr-labels.public.print-direct');
 });
 
 /**

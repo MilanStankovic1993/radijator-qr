@@ -66,72 +66,72 @@ class ServiceQrLabelPublicController extends Controller
         ]);
     }
 
-    public function printDirect(string $token)
-    {
-        $label = ServiceQrLabel::query()
-            ->where('token', $token)
-            ->firstOrFail();
+    // public function printDirect(string $token)
+    // {
+    //     $label = ServiceQrLabel::query()
+    //         ->where('token', $token)
+    //         ->firstOrFail();
 
-        abort_if($label->isDisabled(), Response::HTTP_NOT_FOUND);
+    //     abort_if($label->isDisabled(), Response::HTTP_NOT_FOUND);
 
-        $result = $this->sendToPrinter($label);
+    //     $result = $this->sendToPrinter($label);
 
-        return response()->json($result, $result['ok'] ? 200 : 500);
-    }
+    //     return response()->json($result, $result['ok'] ? 200 : 500);
+    // }
 
-    public function sendToPrinter(ServiceQrLabel $label): array
-    {
-        $zpl = $this->buildZpl($label);
+    // public function sendToPrinter(ServiceQrLabel $label): array
+    // {
+    //     $zpl = $this->buildZpl($label);
 
-        $errorNumber = 0;
-        $errorMessage = '';
+    //     $errorNumber = 0;
+    //     $errorMessage = '';
 
-        $socket = @fsockopen(
-            self::ZEBRA_IP,
-            self::ZEBRA_PORT,
-            $errorNumber,
-            $errorMessage,
-            self::SOCKET_TIMEOUT
-        );
+    //     $socket = @fsockopen(
+    //         self::ZEBRA_IP,
+    //         self::ZEBRA_PORT,
+    //         $errorNumber,
+    //         $errorMessage,
+    //         self::SOCKET_TIMEOUT
+    //     );
 
-        if (! $socket) {
-            return [
-                'ok' => false,
-                'message' => 'Ne mogu da se povezem na Zebra stampac.',
-                'printer_ip' => self::ZEBRA_IP,
-                'printer_port' => self::ZEBRA_PORT,
-                'error' => trim($errorMessage) !== '' ? $errorMessage : ('Socket error #' . $errorNumber),
-            ];
-        }
+    //     if (! $socket) {
+    //         return [
+    //             'ok' => false,
+    //             'message' => 'Ne mogu da se povezem na Zebra stampac.',
+    //             'printer_ip' => self::ZEBRA_IP,
+    //             'printer_port' => self::ZEBRA_PORT,
+    //             'error' => trim($errorMessage) !== '' ? $errorMessage : ('Socket error #' . $errorNumber),
+    //         ];
+    //     }
 
-        stream_set_timeout($socket, self::SOCKET_TIMEOUT);
+    //     stream_set_timeout($socket, self::SOCKET_TIMEOUT);
 
-        $written = fwrite($socket, $zpl);
-        fflush($socket);
-        fclose($socket);
+    //     $written = fwrite($socket, $zpl);
+    //     fflush($socket);
+    //     fclose($socket);
 
-        if ($written === false || $written <= 0) {
-            return [
-                'ok' => false,
-                'message' => 'ZPL nije uspesno poslat stampacu.',
-                'printer_ip' => self::ZEBRA_IP,
-                'printer_port' => self::ZEBRA_PORT,
-            ];
-        }
+    //     if ($written === false || $written <= 0) {
+    //         return [
+    //             'ok' => false,
+    //             'message' => 'ZPL nije uspesno poslat stampacu.',
+    //             'printer_ip' => self::ZEBRA_IP,
+    //             'printer_port' => self::ZEBRA_PORT,
+    //         ];
+    //     }
 
-        if (! $label->isPrinted()) {
-            $label->markAsPrinted();
-        }
+    //     if (! $label->isPrinted()) {
+    //         $label->markAsPrinted();
+    //     }
 
-        return [
-            'ok' => true,
-            'message' => 'Etiketa je poslata na Zebra stampac.',
-            'printer_ip' => self::ZEBRA_IP,
-            'printer_port' => self::ZEBRA_PORT,
-            'bytes_sent' => $written,
-            'token' => $label->token,
-        ];
-    }
+    //     return [
+    //         'ok' => true,
+    //         'message' => 'Etiketa je poslata na Zebra stampac.',
+    //         'printer_ip' => self::ZEBRA_IP,
+    //         'printer_port' => self::ZEBRA_PORT,
+    //         'bytes_sent' => $written,
+    //         'token' => $label->token,
+    //     ];
+    // }
 
     private function buildZpl(ServiceQrLabel $label): string
     {
